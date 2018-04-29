@@ -11,7 +11,7 @@ body {
 }
 
 .fill {
-    fill: rgba(119, 153, 153, 1);
+    fill: rgba(119,153,153, 1);
 }
 
 .country {
@@ -39,15 +39,18 @@ div.tooltip {
 
 <body>
     <div class='map'></div>
-    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src='//d3js.org/d3.v4.min.js'></script>
     <script src='https://d3js.org/d3-geo-projection.v2.min.js'></script>
     <script src='//d3js.org/topojson.v1.min.js'></script>
-    <script src="https://unpkg.com/gsheets@next/gsheets.polyfill.min.js"></script>
+    <script src='tabletop.min.js'></script>
     <script>
-    function drawMap() {
+    function drawMap(data) {
+
+        var countryArray = [];
+        getArray(data, countryArray);
 
         var authorColors = {
-            'Breig': '#b2182b',
+            'Breig' : '#b2182b',
             'Mueller': '#ef8a62',
             'Frane': '#fddbc7',
             'Leser': '#f7f7f7'
@@ -59,7 +62,7 @@ div.tooltip {
 
         var projection = d3.geoPatterson()
             .scale(180)
-            .translate([width / 2, height / 2]);
+            .translate([width / 2, height/2]);
 
         var path = d3.geoPath()
             .projection(projection);
@@ -78,19 +81,11 @@ div.tooltip {
             .scaleExtent([1, 12])
             .on('zoom', zoomed));
 
-        var raw_data = gsheets.getWorksheet('1QmuKbD-gv5voi-lqGkZ5b6VlW-2TvZ0ZWVzBA6fDxbI', 'Tabellenblatt1');
-        var world_geo = d3.json('./world.topo.json');
-
-        Promise.all([raw_data, world_geo]).then(function(sheet_data) {
-
-            var data = sheet_data[0].data;
-            var world = sheet_data[1];
+        d3.json('world.topo.json', function(error, world) {
+            if (error) throw error;
 
             var feat = world.objects.ne_50m_admin_0_countries;
             var countries = topojson.feature(world, feat).features;
-
-            var countryArray = [];
-            getArray(data, countryArray);
 
             addProps(feat, data);
 
@@ -134,6 +129,16 @@ div.tooltip {
         }
     }
 
+    function renderSpreadsheetData() {
+        Tabletop.init({
+            key: '1QmuKbD-gv5voi-lqGkZ5b6VlW-2TvZ0ZWVzBA6fDxbI',
+            callback: drawMap,
+            wait: false,
+            singleton: true,
+            simpleSheet: true
+        });
+    }
+
     function getArray(a, b) {
         for (var i = a.length - 1; i >= 0; i--) {
             b.push(a[i].ISO);
@@ -157,5 +162,6 @@ div.tooltip {
             }
         }
     }
-    drawMap();
+
+    renderSpreadsheetData();
     </script>
