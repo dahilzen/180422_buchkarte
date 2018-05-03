@@ -8,7 +8,8 @@ body {
 
 .map {
     width: 100%;
-    height: 600px;
+    min-height: 300px;
+    max-height: 1000px;
 }
 
 .fill {
@@ -44,57 +45,43 @@ div.tooltip {
     <script src='https://d3js.org/d3-geo-projection.v2.min.js'></script>
     <script src='//d3js.org/topojson.v1.min.js'></script>
     <script src="https://unpkg.com/gsheets@next/gsheets.polyfill.min.js"></script>
+    <script type="https://cdn.rawgit.com/davidjbradshaw/iframe-resizer/master/js/iframeResizer.contentWindow.min.js"></script>
     <script>
     function drawMap() {
-
         var authorColors = {
             'Breig': '#1b7837',
             'Mueller': '#b2182b',
             'Frane': '#4575b4',
             'Leser': '#f7f7f7'
         };
-
         var body = d3.select('.map');
         var width = parseFloat(body.style('width')),
-            height = parseFloat(body.style('height'));
-
+            height = getWidth();
         var projection = d3.geoPatterson()
-            .scale(180)
+            .scale(getScale())
             .translate([width / 2, height / 2]);
-
         var path = d3.geoPath()
             .projection(projection);
-
         var svg = d3.select('.map').append('svg')
             .attr('width', width)
             .attr('height', height);
-
         var div = d3.select('.map').append('div')
             .attr('class', 'tooltip')
             .style('opacity', 0);
-
         var g = svg.append('g');
-
         svg.call(d3.zoom()
             .scaleExtent([1, 12])
             .on('zoom', zoomed));
-
         var raw_data = gsheets.getWorksheet('1QmuKbD-gv5voi-lqGkZ5b6VlW-2TvZ0ZWVzBA6fDxbI', 'Tabellenblatt1');
         var world_geo = d3.json('./world.topo.json');
-
         Promise.all([raw_data, world_geo]).then(function(sheet_data) {
-
             var data = sheet_data[0].data;
             var world = sheet_data[1];
-
             var feat = world.objects.ne_50m_admin_0_countries;
             var countries = topojson.feature(world, feat).features;
-
             var countryArray = [];
             getArray(data, countryArray);
-
             addProps(feat, data);
-
             g.selectAll('.country')
                 .data(countries)
                 .enter().insert('path')
@@ -135,6 +122,28 @@ div.tooltip {
         }
     }
 
+    var viewportWidth = window.innerWidth;
+
+    function getScale() {
+        var initScale;
+        if (viewportWidth < [480]) {
+            initScale = 75;
+        } else {
+            initScale = 180;
+        }
+        return initScale;
+    }
+
+    function getWidth() {
+        var initWidth;
+        if (viewportWidth > 480) {
+            initWidth = 645
+        } else {
+            initWidth = 300
+        }
+        return initWidth;
+    }
+
     function getArray(a, b) {
         for (var i = a.length - 1; i >= 0; i--) {
             b.push(a[i].ISO);
@@ -147,7 +156,6 @@ div.tooltip {
             var currentFeature = d.geometries[i].properties;
             // initialisiere variable für passendes Objekt
             var match;
-
             for (var j = e.length - 1; j >= 0; j--) {
                 // Check, ob der Datensatz passt
                 if (e[j].ISO === currentFeature.ISO_A3) {
