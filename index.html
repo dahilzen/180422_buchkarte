@@ -9,7 +9,7 @@ body {
 .map {
     width: 100%;
     min-height: 300px;
-    max-height: 1000px;
+    max-height: 600px;
 }
 
 .fill {
@@ -129,7 +129,7 @@ div.tooltip {
         if (viewportWidth < [480]) {
             initScale = 75;
         } else {
-            initScale = 180;
+            initScale = 140;
         }
         return initScale;
     }
@@ -137,9 +137,9 @@ div.tooltip {
     function getWidth() {
         var initWidth;
         if (viewportWidth > 480) {
-            initWidth = 645
+            initWidth = 550;
         } else {
-            initWidth = 300
+            initWidth = 300;
         }
         return initWidth;
     }
